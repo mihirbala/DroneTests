@@ -1,8 +1,9 @@
 import olympe
 from olympe.messages.ardrone3.Piloting import TakeOff, moveBy, Landing
-from olympe.messages.ardrone3.PilotingState import FlyingStateChanged, GpsLocationChanged, AirSpeedChanged
+from olympe.messages.ardrone3.PilotingState import FlyingStateChanged, GpsLocationChanged, SpeedChanged
 import threading
 import requests
+import math
 import time
 
 # IP address of the drone we want to connect to. TODO: Make this depend on input instead of being constant.
@@ -15,14 +16,19 @@ broadcasting = True
 # Transponder thread which will update the drone's location on the map.
 def transponder_thread(drone, tag):
     while (broadcasting):
+        airspeed = 0
+        try:
+            speed = drone.get_state(SpeedChanged)
+            airspeed = math.sqrt(speed["speedX"]**2 + speed["speedY"]**2 + speed["speedZ"]**2)
+        except:
+            pass
         try:
             loc = drone.get_state(GpsLocationChanged)
             state = drone.get_state(FlyingStateChanged)
-            speed = drone.get_state(AirSpeedChanged)
-            payload = {"data": {"tag": tag, "lat": loc["latitude"], "lng": loc["longitude"], "alt": loc["altitude"], "spd": speed["airSpeed"], "state": state["state"]}, "droneid": tag}
+            payload = {"data": {"tag": tag, "lat": loc["latitude"], "lng": loc["longitude"], "alt": loc["altitude"], "spd": airspeed, "state": state["state"].name}, "droneid": tag}
             r = requests.post("https://drone-transponder.ue.r.appspot.com/update", json=payload)
             time.sleep(0.1)
-        except:
+        except Exception as e:
             # This means the data is not available just yet. Olympe will raise a runtime error if any of the
             # get_state() calls fail.
             pass
@@ -37,14 +43,14 @@ if __name__ == "__main__":
     time.sleep(3)
     drone(TakeOff())
     transponder.start()
-    drone(FlyingStateChanged(state="hovering", timeout=5)).wait().success()
+    drone(FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
     # FOR DEMO --- wait so the drone can be found on the map.
     time.sleep(5)
     # Now, complete the flight path (square).
-    #drone(moveBy(10, 0, 0, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
-    #drone(moveBy(0, 10, 0, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
-    #drone(moveBy(-10, 0, 0, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
-    #drone(moveBy(0, -10, 0, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
+    drone(moveBy(10, 0, 0, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
+    drone(moveBy(0, 10, 0, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
+    drone(moveBy(-10, 0, 0, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
+    drone(moveBy(0, -10, 0, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
     # Land the drone.
     drone(Landing()).wait().success()
     # Turn off the transponder.
