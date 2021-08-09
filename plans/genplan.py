@@ -1,7 +1,9 @@
 #/usr/bin/python3
 import olympe
-from olympe.messages.ardrone3.Piloting import TakeOff, Landing, MoveTo
-from olympe.enums.ardrone3.Piloting import MoveTo_Orientation_mode as mode
+from olympe.messages.ardrone3.Piloting import TakeOff, Landing, moveTo
+import olympe.enums.move as mode
+from olympe.messages.ardrone3.PilotingState import FlyingStateChanged, moveToChanged
+
 if __name__ == "__main__":
         
     #eventually IP will be specified depending on what drone is chosen
