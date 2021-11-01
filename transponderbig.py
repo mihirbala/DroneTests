@@ -49,10 +49,11 @@ if __name__ == "__main__":
     # FOR DEMO --- wait so the drone can be found on the map.
     time.sleep(5)
     # Now, complete the flight path (square).
-    drone(moveBy(10, 0, 0, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
-    drone(moveBy(0, 10, 0, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
-    drone(moveBy(-10, 0, 0, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
-    drone(moveBy(0, -10, 0, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
+    drone(moveBy(0, 0, -5, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
+    drone(moveBy(20, 0, 0, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
+    drone(moveBy(0, 20, 0, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
+    drone(moveBy(-20, 0, 0, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
+    drone(moveBy(0, -20, 0, 0) >> FlyingStateChanged(state="hovering", _timeout=5)).wait().success()
     # Land the drone.
     drone(Landing()).wait().success()
     # Turn off the transponder.
